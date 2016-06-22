@@ -1616,10 +1616,10 @@ static int cgroup_show_path(struct seq_file *sf, struct kernfs_node *kf_node,
 	if (!buf)
 		return -ENOMEM;
 
-	spin_lock_bh(&css_set_lock);
+	spin_lock_irq(&css_set_lock);
 	ns_cgroup = current_cgns_cgroup_from_root(kf_cgroot);
 	len = kernfs_path_from_node(kf_node, ns_cgroup->kn, buf, PATH_MAX);
-	spin_unlock_bh(&css_set_lock);
+	spin_unlock_irq(&css_set_lock);
 
 	if (len >= PATH_MAX)
 		len = -ERANGE;
@@ -2219,8 +2219,29 @@ out_free:
 		return ERR_PTR(ret);
 out_mount:
 	dentry = kernfs_mount(fs_type, flags, root->kf_root,
-			      is_v2 ? CGROUP2_SUPER_MAGIC : CGROUP_SUPER_MAGIC,
-			      &new_sb);
+				CGROUP_SUPER_MAGIC, &new_sb);
+	/*
+	 * In non-init cgroup namespace, instead of root cgroup's
+	 * dentry, we return the dentry corresponding to the
+	 * cgroupns->root_cgrp.
+	 */
+	if (!IS_ERR(dentry) && ns != &init_cgroup_ns) {
+		struct dentry *nsdentry;
+		struct cgroup *cgrp;
+
+		mutex_lock(&cgroup_mutex);
+		spin_lock_irq(&css_set_lock);
+
+		cgrp = cset_cgroup_from_root(ns->root_cset, root);
+
+		spin_unlock_irq(&css_set_lock);
+		mutex_unlock(&cgroup_mutex);
+
+		nsdentry = kernfs_node_dentry(cgrp->kn, dentry->d_sb);
+		dput(dentry);
+		dentry = nsdentry;
+	}
+
 	if (IS_ERR(dentry) || !new_sb)
 		cgroup_put(&root->cgrp);
 
@@ -2278,11 +2299,11 @@ int cgroup_path_ns(struct cgroup *cgrp, char *buf, size_t buflen,
 	int ret;
 
 	mutex_lock(&cgroup_mutex);
-	spin_lock_bh(&css_set_lock);
+	spin_lock_irq(&css_set_lock);
 
 	ret = cgroup_path_ns_locked(cgrp, buf, buflen, ns);
 
-	spin_unlock_bh(&css_set_lock);
+	spin_unlock_irq(&css_set_lock);
 	mutex_unlock(&cgroup_mutex);
 
 	return ret;
