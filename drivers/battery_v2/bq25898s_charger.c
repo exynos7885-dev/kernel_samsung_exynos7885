@@ -264,7 +264,7 @@ static int bq25898s_chg_get_property(struct power_supply *psy,
 		union power_supply_propval *val)
 {
 	struct bq25898s_charger *charger = power_supply_get_drvdata(psy);
-	enum power_supply_ext_property ext_psp = psp;
+	enum power_supply_ext_property ext_psp = (enum power_supply_ext_property)psp;
 
 	val->intval = 0;
 

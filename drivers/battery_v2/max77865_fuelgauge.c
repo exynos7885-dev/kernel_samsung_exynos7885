@@ -1456,7 +1456,7 @@ static int max77865_fg_get_property(struct power_supply *psy,
 	union power_supply_propval value;
 	u8 data[2] = {0, 0};
 #if defined(CONFIG_BATTERY_SBM_DATA)
-    enum power_supply_ext_property ext_psp = psp;
+    enum power_supply_ext_property ext_psp = (enum power_supply_ext_property)psp;
 #endif
 
 	switch (psp) {
@@ -1719,7 +1719,7 @@ static int max77865_fg_set_property(struct power_supply *psy,
 	u8 data[2] = {0, 0};
 	static bool low_temp_wa = false;
 #if defined(CONFIG_BATTERY_SBM_DATA)	
-	enum power_supply_ext_property ext_psp = psp;
+	enum power_supply_ext_property ext_psp = (enum power_supply_ext_property)psp;
 #endif
 
 	switch (psp) {
