@@ -62,7 +62,7 @@ module_param_named(allocstall_threshold, allocstall_threshold,
 			ulong, S_IRUGO | S_IWUSR);
 
 static struct vmpressure global_vmpressure;
-BLOCKING_NOTIFIER_HEAD(vmpressure_notifier);
+static BLOCKING_NOTIFIER_HEAD(vmpressure_notifier);
 
 int vmpressure_notifier_register(struct notifier_block *nb)
 {
@@ -74,7 +74,7 @@ int vmpressure_notifier_unregister(struct notifier_block *nb)
 	return blocking_notifier_chain_unregister(&vmpressure_notifier, nb);
 }
 
-void vmpressure_notify(unsigned long pressure)
+static void vmpressure_notify(unsigned long pressure)
 {
 	blocking_notifier_call_chain(&vmpressure_notifier, pressure, NULL);
 }
@@ -146,7 +146,7 @@ static enum vmpressure_levels vmpressure_level(unsigned long pressure)
 }
 
 static unsigned long vmpressure_calc_pressure(unsigned long scanned,
-						    unsigned long reclaimed, struct vmpressure *vmpr)
+						unsigned long reclaimed)
 {
 	unsigned long scale = scanned + reclaimed;
 	unsigned long pressure = 0;
@@ -168,7 +168,6 @@ static unsigned long vmpressure_calc_pressure(unsigned long scanned,
 	pressure = scale - (reclaimed * scale / scanned);
 	pressure = pressure * 100 / scale;
 
-	vmpr->pressure = pressure;
 out:
 	pr_debug("%s: %3lu  (s: %lu  r: %lu)\n", __func__, pressure,
 		 scanned, reclaimed);
@@ -203,7 +202,7 @@ static bool vmpressure_event(struct vmpressure *vmpr,
 	unsigned long pressure;
 	bool signalled = false;
 
-	pressure = vmpressure_calc_pressure(scanned, reclaimed, vmpr);
+	pressure = vmpressure_calc_pressure(scanned, reclaimed);
 	level = vmpressure_level(pressure);
 
 	mutex_lock(&vmpr->events_lock);
@@ -256,8 +255,8 @@ static void vmpressure_work_fn(struct work_struct *work)
 	} while ((vmpr = vmpressure_parent(vmpr)));
 }
 
-void vmpressure_memcg(gfp_t gfp, struct mem_cgroup *memcg,
-		unsigned long scanned, unsigned long reclaimed)
+static void vmpressure_memcg(gfp_t gfp, struct mem_cgroup *memcg,
+			     unsigned long scanned, unsigned long reclaimed)
 {
 	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
 
@@ -299,7 +298,7 @@ void vmpressure_memcg(gfp_t gfp, struct mem_cgroup *memcg,
 	schedule_work(&vmpr->work);
 }
 
-void calculate_vmpressure_win(void)
+static void calculate_vmpressure_win(void)
 {
 	long x;
 
@@ -322,8 +321,8 @@ void calculate_vmpressure_win(void)
 	vmpressure_win = x;
 }
 
-void vmpressure_global(gfp_t gfp, unsigned long scanned,
-		unsigned long reclaimed)
+static void vmpressure_global(gfp_t gfp, unsigned long scanned,
+			      unsigned long reclaimed)
 {
 	struct vmpressure *vmpr = &global_vmpressure;
 	unsigned long pressure;
@@ -523,7 +522,7 @@ void vmpressure_cleanup(struct vmpressure *vmpr)
 	flush_work(&vmpr->work);
 }
 
-int vmpressure_global_init(void)
+static int __init vmpressure_global_init(void)
 {
 	vmpressure_init(&global_vmpressure);
 	return 0;
