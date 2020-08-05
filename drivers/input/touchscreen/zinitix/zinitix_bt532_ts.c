@@ -48,6 +48,11 @@
 #endif
 
 #define CONFIG_INPUT_ENABLED
+#ifdef CONFIG_FB
+#include <linux/notifier.h>
+#include <linux/fb.h>
+#endif
+
 #define SEC_FACTORY_TEST
 
 #define NOT_SUPPORTED_TOUCH_DUMMY_KEY
@@ -711,6 +716,9 @@ struct bt532_ts_info {
 	bool tsp_pwr_enabled;
 #ifdef CONFIG_VBUS_NOTIFIER
 	struct notifier_block vbus_nb;
+#endif
+#ifdef CONFIG_FB
+	struct notifier_block fb_notif;
 #endif
 	u8 cover_type;
 	bool	flip_enable;
@@ -2220,6 +2228,11 @@ fw_request_fail:
 	return ret;
 }
 
+#ifdef CONFIG_FB
+static int fb_notifier_callback(struct notifier_block *self,
+	unsigned long event, void *data);
+#endif
+
 static bool init_touch(struct bt532_ts_info *info)
 {
 	struct bt532_ts_platform_data *pdata = info->pdata;
@@ -2278,6 +2291,11 @@ static bool init_touch(struct bt532_ts_info *info)
 	input_info(true, &info->client->dev, "%s: tsp_test=%x pat_function=%d afe_base=%04X cal_count=%X tune_fix_ver=%04X\n", 
 					__func__, info->test_result.data[0], info->pdata->pat_function, info->pdata->afe_base, 
 					info->cap_info.cal_count, info->cap_info.tune_fix_ver);
+#endif
+#ifdef CONFIG_FB
+	info->fb_notif.notifier_call = fb_notifier_callback;
+	if (fb_register_client(&info->fb_notif))
+		pr_err("%s: could not create fb notifier\n", __func__);
 #endif
 	return true;
 fail_init:
@@ -2894,6 +2912,35 @@ static void bt532_ts_close(struct input_dev *dev)
 	return;
 }
 #endif	/* CONFIG_INPUT_ENABLED */
+
+#ifdef CONFIG_FB
+static int fb_notifier_callback(struct notifier_block *self,
+				unsigned long event, void *data)
+{
+	struct fb_event *evdata = data;
+	struct bt532_ts_info *tc_data = container_of(self, struct bt532_ts_info, fb_notif);
+
+	if (evdata && evdata->data && event == FB_EVENT_BLANK) {
+		int *blank = evdata->data;
+		switch (*blank) {
+		case FB_BLANK_UNBLANK:
+		case FB_BLANK_NORMAL:
+		case FB_BLANK_VSYNC_SUSPEND:
+		case FB_BLANK_HSYNC_SUSPEND:
+			bt532_ts_open(tc_data->input_dev);
+			break;
+		case FB_BLANK_POWERDOWN:
+			bt532_ts_close(tc_data->input_dev);
+			break;
+		default:
+			/* Don't handle what we don't understand */
+			break;
+		}
+	}
+
+	return 0;
+}
+#endif
 
 #if defined(SEC_FACTORY_TEST) || defined(USE_MISC_DEVICE)
 static bool ts_set_touchmode(u16 value){
@@ -8306,6 +8353,9 @@ static int bt532_ts_remove(struct i2c_client *client)
 		free_irq(info->irq, info);
 #ifdef USE_MISC_DEVICE
 	misc_deregister(&touch_misc_device);
+#endif
+#ifdef CONFIG_FB
+	fb_unregister_client(&info->fb_notif);
 #endif
 
 	if (gpio_is_valid(pdata->gpio_int) != 0)
