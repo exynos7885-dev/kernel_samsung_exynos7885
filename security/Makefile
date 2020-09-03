@@ -43,10 +43,8 @@ obj-$(CONFIG_MST_LDO)	  += mstdrv/
 obj-$(CONFIG_SDP) += sdp/
 obj-$(CONFIG_SDP) += sdp/built-in.o
 
-# PROCA module
-subdir-$(CONFIG_PROCA)		+= proca
-obj-$(CONFIG_PROCA)		+= proca/
+# TIMA uevent 
+obj-$(CONFIG_TIMA)     += tima_uevent/tima_uevent.o
+#ICCC
+obj-$(CONFIG_TZ_ICCC)	  += tz_iccc/
 
-# GAF module for PROCA, Secure Storage 1
-subdir-$(CONFIG_GAF) += proca/gaf
-obj-$(CONFIG_GAF)    += proca/gaf/
