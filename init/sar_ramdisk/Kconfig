@@ -1,6 +1,8 @@
+menu "Android ramdisk loader"
+
 config ANDROID_SAR_RAMDISK
-	bool
-	default n
+	bool "Load ramdisk from boot.img"
+	default y if ANDROID_SYSTEM_AS_ROOT
 	help
 	  Support for loading a ramdisk from a
 	  partition containing an Android boot.img.
@@ -13,3 +15,5 @@ config ANDROID_BOOT_PARTITION
 	string "Android boot partition"
 
 endif
+
+endmenu
