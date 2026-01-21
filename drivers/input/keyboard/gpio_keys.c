@@ -39,6 +39,8 @@
 struct device *sec_key;
 EXPORT_SYMBOL(sec_key);
 
+static bool navbar_enabled = true;
+
 static int call_gpio_keys_notifier(unsigned int code, int state);
 
 struct gpio_button_data {
@@ -548,11 +550,31 @@ static ssize_t key_pressed_count_store(struct device *dev,
 	return count;
 }
 
+static ssize_t navbar_enabled_show(struct device *dev,
+				   struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", navbar_enabled);
+}
+
+static ssize_t navbar_enabled_store(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t count)
+{
+	int val;
+
+	if (kstrtoint(buf, 10, &val))
+		return -EINVAL;
+
+	navbar_enabled = !!val;
+	return count;
+}
+
 static DEVICE_ATTR(sec_key_pressed, 0444, key_pressed_show, NULL);
 static DEVICE_ATTR(sec_key_pressed_code, 0444, key_pressed_show_code, NULL);
 static DEVICE_ATTR(wakeup_keys, 0220, NULL, wakeup_enable);
 static DEVICE_ATTR(keycode_pressed, 0444, keycode_pressed_show, NULL);
 static DEVICE_ATTR(key_pressed_count, 0664, key_pressed_count_show, key_pressed_count_store);
+static DEVICE_ATTR(navbar_enabled, 0664, navbar_enabled_show, navbar_enabled_store);
 
 static struct attribute *sec_key_attrs[] = {
 	&dev_attr_sec_key_pressed.attr,
@@ -560,6 +582,7 @@ static struct attribute *sec_key_attrs[] = {
 	&dev_attr_wakeup_keys.attr,
 	&dev_attr_keycode_pressed.attr,
 	&dev_attr_key_pressed_count.attr,
+	&dev_attr_navbar_enabled.attr,
 	NULL,
 };
 
@@ -590,6 +613,16 @@ static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
 
 	pr_info("%s %s: %d (%d/%d)\n", SECLOG, __func__, button->code, state,
 									irqd_is_wakeup_set(&desc->irq_data));
+
+	if (!navbar_enabled) {
+		switch (button->code) {
+		case KEY_BACK:
+		case 0x00fe: // APP_SWITCH
+			return;
+		default:
+			break;
+		}
+	}
 
 	if (type == EV_ABS) {
 		if (state)
