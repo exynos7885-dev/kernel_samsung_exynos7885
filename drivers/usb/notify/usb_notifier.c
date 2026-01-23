@@ -724,7 +724,7 @@ static int usb_notifier_probe(struct platform_device *pdev)
 			       MUIC_NOTIFY_DEV_USB);
 #endif
 #if defined(CONFIG_VBUS_NOTIFIER)
-	vbus_notifier_register(&pdata->vbus_nb, vbus_handle_notification, MUIC_NOTIFY_DEV_USB);
+	vbus_notifier_register(&pdata->vbus_nb, vbus_handle_notification, (vbus_notifier_device_t)MUIC_NOTIFY_DEV_USB);
 #endif
 	dev_info(&pdev->dev, "usb notifier probe\n");
 	return 0;
