@@ -759,7 +759,7 @@ static ssize_t get_lp_dump(struct device *dev, struct device_attribute *attr, ch
 			snprintf(buff, sizeof(buff),
 					"%d: %04x%04x%04x%04x\n",
 					string_addr, data0, data1, data2, data3);
-			strncat(buf, buff, sizeof(buff));
+			strlcat(buf, buff, sizeof(buf));
 		}
 	}
 
@@ -880,10 +880,10 @@ static ssize_t get_cmoffset_dump(struct sec_ts_data *ts, char *buf, int position
 				temp = avg + temp;
 
 			snprintf(buff, sizeof(buff)," %4x", temp);
-			strncat(buf, buff, sizeof(buff));
+			strlcat(buf, buff, sizeof(buf));
 		}
 		snprintf(buff, sizeof(buff),"\n");
-		strncat(buf, buff, sizeof(buff));
+		strlcat(buf, buff, sizeof(buf));
 	}
 	input_err(true, &ts->client->dev, "%s: total buf size:%d\n", __func__,strlen(buf));
 
@@ -973,20 +973,20 @@ static ssize_t get_pressure_cfoffset_strength_all(struct device *dev, struct dev
 		
 		if (i % 3 == 0) {
 			snprintf(buff, sizeof(buff),"\n");
-			strncat(buf, buff, sizeof(buff));
+			strlcat(buf, buff, sizeof(buf));
 		}
 		snprintf(buff, sizeof(buff)," %4X",temp);
-		strncat(buf, buff, sizeof(buff));
+		strlcat(buf, buff, sizeof(buf));
 	}
 	snprintf(buff, sizeof(buff),"\n");
-	strncat(buf, buff, sizeof(buff));
+	strlcat(buf, buff, sizeof(buf));
 
 	/* cf offset 24byte */
 	ret = ts->sec_ts_i2c_read(ts, SEC_TS_GET_FORCE_STRENGTH_DATA, rBuff, strength_max * 2);
 	if (ret < 0) {
 		input_err(true, &ts->client->dev, "%s: read strength failed!\n", __func__);
 		snprintf(buff, sizeof(buff),"\n NG");
-		strncat(buf, buff, sizeof(buff));
+		strlcat(buf, buff, sizeof(buf));
 		goto err_i2c;
 	}
 
@@ -995,10 +995,10 @@ static ssize_t get_pressure_cfoffset_strength_all(struct device *dev, struct dev
 
 		if (i % 3 == 0) {
 			snprintf(buff, sizeof(buff),"\n");
-			strncat(buf, buff, sizeof(buff));
+			strlcat(buf, buff, sizeof(buf));
 		}
 		snprintf(buff, sizeof(buff)," %4X",temp);
-		strncat(buf, buff, sizeof(buff));
+		strlcat(buf, buff, sizeof(buf));
 	}
 
 	input_err(true, &ts->client->dev, "%s: total buf size:%d\n", __func__,strlen(buf));
@@ -3826,7 +3826,7 @@ static void clear_cover_mode(void *device_data)
 #endif
 		}
 
-		if (!ts->power_status == SEC_TS_STATE_POWER_OFF && ts->reinit_done) {
+		if ((ts->power_status != SEC_TS_STATE_POWER_OFF) && ts->reinit_done) {
 			if (ts->flip_enable)
 				sec_ts_set_cover_type(ts, true);
 			else
