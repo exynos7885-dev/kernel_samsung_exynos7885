@@ -7,6 +7,12 @@ dtb-$(CONFIG_EXYNOS_DECON_LCD_S6E3FA7_A7Y18) += exynos/exynos7885-a7y18lte_eur_o
 dtb-$(CONFIG_EXYNOS_DECON_LCD_S6E3FA7_A7Y18) += exynos/exynos7885-a7y18lte_eur_open_01.dtb
 dtb-$(CONFIG_EXYNOS_DECON_LCD_S6E3FA7_A7Y18) += exynos/exynos7885-a7y18lte_eur_open_03.dtb
 
+dtb-$(CONFIG_CAMERA_JACKPOT) += exynos/exynos7885-jackpotlte_eur_open_03.dtb
+dtb-$(CONFIG_CAMERA_JACKPOT) += exynos/exynos7885-jackpotlte_eur_open_04.dtb
+dtb-$(CONFIG_CAMERA_JACKPOT) += exynos/exynos7885-jackpotlte_eur_open_05.dtb
+dtb-$(CONFIG_CAMERA_JACKPOT) += exynos/exynos7885-jackpotlte_eur_open_06.dtb
+dtb-$(CONFIG_CAMERA_JACKPOT) += exynos/exynos7885-jackpotlte_eur_open_07.dtb
+
 targets += dtbs
 DTB_LIST  := $(dtb-y) $(dtbo-y)
 always    := $(DTB_LIST)
