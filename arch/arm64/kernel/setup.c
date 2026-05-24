@@ -366,14 +366,7 @@ void __init setup_arch(char **cmdline_p)
 	/* Parse the ACPI tables for possible boot-time configuration */
 	acpi_boot_table_init();
 #ifdef CONFIG_UH
-#ifdef CONFIG_KNOX_KAP
-	if (boot_mode_security)
-		uh_init();
-	else
-		uh_disable();
-#else
 	uh_init();
-#endif
 #endif
 	paging_init();
 	relocate_initrd();

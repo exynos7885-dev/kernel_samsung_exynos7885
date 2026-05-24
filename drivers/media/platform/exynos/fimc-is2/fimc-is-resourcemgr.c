@@ -562,9 +562,6 @@ static int __init fimc_is_reserved_mem_setup(struct reserved_mem *rmem)
 	BUG_ON(rmem->size < LIB_SIZE);
 
 #ifdef CONFIG_UH_RKP
-#ifdef CONFIG_KNOX_KAP
-	if (boot_mode_security)
-#endif
 	do{
 		rkp_dynamic_load_t rkp_dyn;
 		int ret;
@@ -584,11 +581,7 @@ static int __init fimc_is_reserved_mem_setup(struct reserved_mem *rmem)
 		}
 		vm_area_add_early(&fimc_lib_vm_for_rkp);
 	}while(0);
-#ifdef CONFIG_KNOX_KAP
-	else
-#else
 	if(0)
-#endif
 #endif
 	vm_area_add_early(&fimc_is_lib_vm);
 
@@ -624,9 +617,6 @@ static int __init fimc_is_lib_mem_alloc(char *str)
 	fimc_is_lib_vm.addr = (void *)addr;
 	fimc_is_lib_vm.size = LIB_SIZE + PAGE_SIZE;
 #ifdef CONFIG_UH_RKP
-#ifdef CONFIG_KNOX_KAP
-	if (boot_mode_security)
-#endif
 	do{
 		rkp_dynamic_load_t rkp_dyn;
 		int ret;
@@ -647,11 +637,7 @@ static int __init fimc_is_lib_mem_alloc(char *str)
 		vm_area_add_early(&fimc_lib_vm_for_rkp);
 		// vm_area_add_early(&fimc_is_lib_vm);
 	}while(0);
-#ifdef CONFIG_KNOX_KAP
-	else
-#else
 	if(0)
-#endif
 #endif
 	vm_area_add_early(&fimc_is_lib_vm);
 

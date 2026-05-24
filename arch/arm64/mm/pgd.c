@@ -46,10 +46,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 pgd_t *pgd_alloc(struct mm_struct *mm)
 {
 	pgd_t *ret = NULL;
-#ifdef CONFIG_KNOX_KAP
-	if (boot_mode_security)
-#endif
-		ret = (pgd_t *) rkp_ro_alloc();
+	ret = (pgd_t *) rkp_ro_alloc();
 	if (!ret) {
 		if (PGD_SIZE == PAGE_SIZE)
 			ret = (pgd_t *)__get_free_page(PGALLOC_GFP);
@@ -61,10 +58,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 		pr_warn("%s: pgd alloc is failed\n", __func__);
 		return ret;
 	}
-#ifdef CONFIG_KNOX_KAP
-	if (boot_mode_security)
-#endif
-		uh_call(UH_APP_RKP, RKP_NEW_PGD, (u64)ret, 0, 0, 0);
+	uh_call(UH_APP_RKP, RKP_NEW_PGD, (u64)ret, 0, 0, 0);
 	return ret;
 }
 #endif
@@ -79,11 +73,7 @@ void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 #else
 void pgd_free(struct mm_struct *mm, pgd_t *pgd)
 {
-	int rkp_do = 0;
-#ifdef CONFIG_KNOX_KAP
-	if (boot_mode_security)
-#endif
-		rkp_do = 1;
+	int rkp_do = 1;
 	if (rkp_do)
 		uh_call(UH_APP_RKP, RKP_FREE_PGD, (u64)pgd, 0, 0, 0);
 	/* if pgd memory come from read only buffer, the put it back */

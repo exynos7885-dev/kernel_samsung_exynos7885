@@ -531,10 +531,6 @@ static int __init rkp_test_init(void)
 {
 	phys_addr_t ret = 0;
 
-#ifdef CONFIG_KNOX_KAP
-	if (!boot_mode_security)
-		return 0;
-#endif
 	if (proc_create("rkp_test", 0444, NULL, &rkp_proc_fops) == NULL) {
 		printk(KERN_ERR "RKP_TEST: Error creating proc entry");
 		return -1;

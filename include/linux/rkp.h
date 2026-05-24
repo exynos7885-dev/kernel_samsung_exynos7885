@@ -89,10 +89,6 @@ enum __RKP_CMD_ID{
 
 /* For RKP Memory*/
 #define RKP_NUM_MEM		0x03
-#ifdef CONFIG_KNOX_KAP
-extern int boot_mode_security;
-#endif
-
 
 struct rkp_init { //copy from uh (app/rkp/rkp.h)
 	u32 magic;
@@ -186,10 +182,6 @@ extern sparse_bitmap_for_kernel_t* rkp_s_bitmap_dbl;
 extern sparse_bitmap_for_kernel_t* rkp_s_bitmap_buffer;
 
 #define is_uh_start ((u64)rkp_s_bitmap_buffer)
-
-#ifdef CONFIG_KNOX_KAP
-extern int boot_mode_security;
-#endif
 
 #ifdef CONFIG_RKP_KDP
 extern int rkp_cred_enable;

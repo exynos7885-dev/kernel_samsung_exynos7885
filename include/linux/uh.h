@@ -35,10 +35,6 @@ enum __UH_APP_ID {
 
 #define UH_TEXT_OFFSET			(0x1000ULL)
 
-#ifdef CONFIG_KNOX_KAP
-extern int boot_mode_security;
-#endif
-
 struct test_case_struct {
 	int (* fn)(void); //test case func
 	char * describe;

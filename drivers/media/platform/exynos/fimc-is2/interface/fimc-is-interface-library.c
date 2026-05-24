@@ -2170,9 +2170,6 @@ int fimc_is_load_ddk_bin(int loadType)
 #ifdef CONFIG_UH_RKP
 		rkp_dynamic_load_t rkp_dyn;
 		static rkp_dynamic_load_t rkp_dyn_before = {0};
-#ifdef CONFIG_KNOX_KAP
-		if (boot_mode_security)
-#endif
 		do{
 			memset(&rkp_dyn, 0, sizeof(rkp_dyn));
 			rkp_dyn.binary_base = lib_addr;
@@ -2213,20 +2210,13 @@ int fimc_is_load_ddk_bin(int loadType)
 		flush_icache_range(lib_addr, bin.size);
 
 #ifdef CONFIG_UH_RKP
-#ifdef CONFIG_KNOX_KAP
-		if (boot_mode_security)
-#endif
 		do{
 			ret = uh_call(UH_APP_RKP, RKP_DYNAMIC_LOAD, RKP_DYN_COMMAND_INS, (u64)&rkp_dyn, 0, 0);
 			if (ret) {
 				err_lib("fail to load verify FIMC in EL2");
 			}
 		}while(0);
-#ifdef CONFIG_KNOX_KAP
-		else
-#else
 		if(0)
-#endif
 #endif
 		do{
 			ret = fimc_is_memory_attribute_rox(&memory_attribute[INDEX_ISP_BIN]);
@@ -2362,9 +2352,6 @@ int fimc_is_load_rta_bin(int loadType)
 #ifdef CONFIG_UH_RKP
 		rkp_dynamic_load_t rkp_dyn;
 		static rkp_dynamic_load_t rkp_dyn_before = {0};
-#ifdef CONFIG_KNOX_KAP
-		if (boot_mode_security)
-#endif
 		do{
 			memset(&rkp_dyn, 0, sizeof(rkp_dyn));
 			rkp_dyn.binary_base = lib_rta;
@@ -2390,20 +2377,13 @@ int fimc_is_load_rta_bin(int loadType)
 		__flush_dcache_area((void *)lib_rta, bin.size);
 		flush_icache_range(lib_rta, bin.size);
 #ifdef CONFIG_UH_RKP
-#ifdef CONFIG_KNOX_KAP
-		if (boot_mode_security)
-#endif
 		do{
 			ret = uh_call(UH_APP_RKP, RKP_DYNAMIC_LOAD, RKP_DYN_COMMAND_INS,(u64)&rkp_dyn, 0, 0);
 			if (ret) {
 				err_lib("fail to load verify FIMC in EL2");
 			}
 		}while(0);
-#ifdef CONFIG_KNOX_KAP
-		else
-#else
 		if(0)
-#endif
 #endif
 		do{
 			ret = fimc_is_memory_attribute_rox(&rta_memory_attribute);

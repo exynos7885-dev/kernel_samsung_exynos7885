@@ -61,9 +61,6 @@ static int iotable_on;
 u64 kimage_voffset __read_mostly;
 EXPORT_SYMBOL(kimage_voffset);
 
-#ifdef CONFIG_KNOX_KAP
-extern int boot_mode_security;
-#endif
 /*
  * Empty_zero_page is a special page that is used for zero-initialized data
  * and COW.
@@ -221,11 +218,7 @@ static void alloc_init_pmd(pud_t *pud, unsigned long addr, unsigned long end,
 	pmd_t *pmd;
 	unsigned long next;
 #ifdef CONFIG_UH_RKP
-	int rkp_do = 0;
-#ifdef CONFIG_KNOX_KAP
-		if (boot_mode_security)
-#endif
-			rkp_do = 1;
+	int rkp_do = 1;
 #endif
 
 	/*
@@ -622,15 +615,8 @@ static void __init map_kernel(pgd_t *pgd)
 	static struct vm_struct vmlinux_text, vmlinux_rodata, vmlinux_init, vmlinux_data;
 
 #ifdef CONFIG_UH_RKP
-#ifdef CONFIG_KNOX_KAP
-	if (boot_mode_security)
-#endif
 	map_kernel_text_chunk(pgd, _text, _etext, PAGE_KERNEL_EXEC, &vmlinux_text);
-#ifdef CONFIG_KNOX_KAP
-	else
-#else
 	if(0)
-#endif
 #endif
 	map_kernel_chunk(pgd, _stext, _etext, PAGE_KERNEL_EXEC, &vmlinux_text);
 	map_kernel_chunk(pgd, __start_rodata, __init_begin, PAGE_KERNEL, &vmlinux_rodata);
