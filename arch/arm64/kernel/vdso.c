@@ -44,6 +44,8 @@ struct vdso_mappings {
 	struct vm_special_mapping code_mapping;
 };
 
+extern char vdso_start[], vdso_end[];
+
 /*
  * The vDSO data page.
  */
@@ -170,15 +172,14 @@ static int __init vdso_mappings_init(const char *name,
 	struct page **vdso_pagelist;
 	unsigned long pfn;
 
-	if (memcmp(code_start, "\177ELF", 4)) {
-		pr_err("%s is not a valid ELF object!\n", name);
+	if (memcmp(vdso_start, "\177ELF", 4)) {
+		pr_err("vDSO is not a valid ELF object!\n");
 		return -EINVAL;
 	}
 
-	vdso_pages = (code_end - code_start) >> PAGE_SHIFT;
-	pr_info("%s: %ld pages (%ld code @ %p, %ld data @ %p)\n",
-		name, vdso_pages + 1, vdso_pages, code_start, 1L,
-		vdso_data);
+	vdso_pages = (vdso_end - vdso_start) >> PAGE_SHIFT;
+	pr_info("vdso: %ld pages (%ld code @ %p, %ld data @ %p)\n",
+		vdso_pages + 1, vdso_pages, vdso_start, 1L, vdso_data);
 
 	/*
 	 * Allocate space for storing pointers to the vDSO code pages + the
@@ -195,7 +196,7 @@ static int __init vdso_mappings_init(const char *name,
 	vdso_pagelist[0] = phys_to_page(__pa_symbol(vdso_data));
 
 	/* Grab the vDSO code pages. */
-	pfn = sym_to_pfn(code_start);
+	pfn = sym_to_pfn(vdso_start);
 
 	for (i = 0; i < vdso_pages; i++)
 		vdso_pagelist[i + 1] = pfn_to_page(pfn + i);
