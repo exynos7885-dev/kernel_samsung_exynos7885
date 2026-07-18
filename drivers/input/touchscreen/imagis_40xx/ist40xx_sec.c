@@ -853,57 +853,56 @@ static void set_aod_rect(void *dev_data)
 
 	sec->cmd_state = SEC_CMD_STATUS_OK;
 
-	if (data->aod && (data->status.sys_mode == STATE_LPM)) {
-		ist40xx_disable_irq(data);
-		ist40xx_intr_wait(data, 30);
-		mutex_lock(&data->aod_lock);
+	ist40xx_disable_irq(data);
+	ist40xx_intr_wait(data, 30);
+	mutex_lock(&data->aod_lock);
 #ifdef USE_SPONGE_LIB
-		for (i = 0; i < 4; i++)
-			rect_data[i] = sec->cmd_param[i];
+	for (i = 0; i < 4; i++)
+		rect_data[i] = sec->cmd_param[i];
 
-		ret = ist40xx_write_sponge_reg(data, IST40XX_SPONGE_RECT, rect_data, 4);
-		if (ret) {
-			sec->cmd_state = SEC_CMD_STATUS_FAIL;
-			input_err(true, &data->client->dev,
-					"%s(), fail to write rect(idx)\n", __func__);
-			goto err_rect;
-		}
+	ret = ist40xx_write_sponge_reg(data, IST40XX_SPONGE_RECT, rect_data, 4);
+	if (ret) {
+		sec->cmd_state = SEC_CMD_STATUS_FAIL;
+		input_err(true, &data->client->dev,
+				"%s(), fail to write rect(idx)\n", __func__);
+		goto err_rect;
+	}
 
-		for (i = 0; i < 4; i++)
-			data->rect_data[i] = rect_data[i];
+	for (i = 0; i < 4; i++)
+		data->rect_data[i] = rect_data[i];
 #else
-		data->g_reg.b.w = sec->cmd_param[0];
-		data->g_reg.b.h = sec->cmd_param[1];
-		data->g_reg.b.x = sec->cmd_param[2];
-		data->g_reg.b.y = sec->cmd_param[3];
-		ret = ist40xx_burst_write(data->client, IST40XX_HIB_GESTURE_REG,
-					  data->g_reg.full,
-					  sizeof(data->g_reg.full) /
-					  IST40XX_DATA_LEN);
+	data->g_reg.b.w = sec->cmd_param[0];
+	data->g_reg.b.h = sec->cmd_param[1];
+	data->g_reg.b.x = sec->cmd_param[2];
+	data->g_reg.b.y = sec->cmd_param[3];
+	ret = ist40xx_burst_write(data->client, IST40XX_HIB_GESTURE_REG,
+				  data->g_reg.full,
+				  sizeof(data->g_reg.full) /
+				  IST40XX_DATA_LEN);
 
-		if (ret) {
-			input_err(true, &data->client->dev,
-				  "%s(), fail to write gesture regmap\n",
-				  __func__);
-			goto err_rect;
-		}
+	if (ret) {
+		sec->cmd_state = SEC_CMD_STATUS_FAIL;
+		input_err(true, &data->client->dev,
+			  "%s(), fail to write gesture regmap\n",
+			  __func__);
+		goto err_rect;
+	}
 #endif
-		ret = ist40xx_write_cmd(data, IST40XX_HIB_CMD,
-					(eHCOM_NOTIRY_G_REGMAP << 16) |
-					IST40XX_ENABLE);
-		if (ret) {
-			sec->cmd_state = SEC_CMD_STATUS_FAIL;
-			input_err(true, &data->client->dev,
-				  "%s(), fail to write notify packet.\n",
-				  __func__);
-			goto err_rect;
-		}
+	ret = ist40xx_write_cmd(data, IST40XX_HIB_CMD,
+				(eHCOM_NOTIRY_G_REGMAP << 16) |
+				IST40XX_ENABLE);
+	if (ret) {
+		sec->cmd_state = SEC_CMD_STATUS_FAIL;
+		input_err(true, &data->client->dev,
+			  "%s(), fail to write notify packet.\n",
+			  __func__);
+		goto err_rect;
+	}
 
 err_rect:
-		ist40xx_enable_irq(data);
-		data->status.noise_mode = false;
-		mutex_unlock(&data->aod_lock);
-	}
+	ist40xx_enable_irq(data);
+	data->status.noise_mode = false;
+	mutex_unlock(&data->aod_lock);
 
 err:
 	if (sec->cmd_state == SEC_CMD_STATUS_OK)
