@@ -364,6 +364,8 @@ AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage -fno-tree-loop-im
 CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 
+HOSTLDFLAGS	+= -fuse-ld=lld
+HOSTCFLAGS	+= -fuse-ld=lld
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
